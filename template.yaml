@@ -44,6 +44,11 @@ Resources:
       CidrBlock: "10.0.1.0/24"
   EfsFileSystem:
     Type: AWS::EFS::FileSystem
+    Properties:
+      FileSystemTags:
+        - Key: Name
+          Value: cesiumts-data
+      Encrypted: true
   MountTargetA:
     Type: AWS::EFS::MountTarget
     Properties:

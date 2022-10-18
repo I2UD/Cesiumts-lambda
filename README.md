@@ -4,6 +4,25 @@ Deploy [Cesium Terrain Server](https://github.com/geo-data/cesium-terrain-server
 
 Uses [AWS Lambda Go API Proxy](https://github.com/awslabs/aws-lambda-go-api-proxy).
 
+## Deploy
+
+You will need to have installed AWS SAM CLI.
+
+First build the image:
+
+```
+sam build
+```
+
+Then, deploy:
+
+```
+sam deploy --guided
+```
+
+Now follow the instructions.  In the end, SAM will have created all the
+resources it needs.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at the [issues

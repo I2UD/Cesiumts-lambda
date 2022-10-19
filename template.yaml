@@ -3,7 +3,6 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Cesium Terrain Server on AWS Lambda
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Timeout: 5
@@ -28,20 +27,13 @@ Resources:
           FromPort: 0
           ToPort: 65535
           IpProtocol: tcp
-  EfsLambdaSubnetA:
+  EfsLambdaSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref EfsLambdaVpc
       AvailabilityZone: !Select [ 0, !GetAZs '' ]
       MapPublicIpOnLaunch: false
       CidrBlock: "10.0.0.0/24"
-  EfsLambdaSubnetB:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref EfsLambdaVpc
-      AvailabilityZone: !Select [ 1, !GetAZs '' ]
-      MapPublicIpOnLaunch: false
-      CidrBlock: "10.0.1.0/24"
   EfsFileSystem:
     Type: AWS::EFS::FileSystem
     Properties:
@@ -49,18 +41,11 @@ Resources:
         - Key: Name
           Value: cesiumts-data
       Encrypted: true
-  MountTargetA:
+  MountTarget:
     Type: AWS::EFS::MountTarget
     Properties:
       FileSystemId: !Ref EfsFileSystem
-      SubnetId: !Ref EfsLambdaSubnetA
-      SecurityGroups:
-        - !Ref EfsLambdaSecurityGroup
-  MountTargetB:
-    Type: AWS::EFS::MountTarget
-    Properties:
-      FileSystemId: !Ref EfsFileSystem
-      SubnetId: !Ref EfsLambdaSubnetB
+      SubnetId: !Ref EfsLambdaSubnet
       SecurityGroups:
         - !Ref EfsLambdaSecurityGroup
   AccessPoint:
@@ -77,10 +62,9 @@ Resources:
           OwnerUid: "1000"
           Permissions: "755"
   CesiumTerrainServer:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     DependsOn:
-      - MountTargetA
-      - MountTargetB
+      - MountTarget
     Properties:
       PackageType: Image
       Architectures:
@@ -93,32 +77,27 @@ Resources:
         SecurityGroupIds:
           - !Ref EfsLambdaSecurityGroup
         SubnetIds:
-          - !Ref EfsLambdaSubnetA
-          - !Ref EfsLambdaSubnetB
+          - !Ref EfsLambdaSubnet
       FileSystemConfigs:
         - Arn: !GetAtt AccessPoint.Arn
           LocalMountPath: /mnt/lambda
-      Environment: # More info about Env Vars: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#environment-object
+      Environment:
         Variables:
           FILES_DIR: /mnt/lambda
       Events:
-        API:
-          Type: HttpApi
+        GetResource:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
     Metadata:
       DockerTag: go1.x-v1
       DockerContext: ./cesiumts
       Dockerfile: Dockerfile
 
 Outputs:
-  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
-  # Find out more about other implicit resources you can reference within SAM
-  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
-  CesiumTerrainServerAPI:
-    Description: "API Gateway Endpoint URL for Cesium Terrain Server"
-    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/"
-  CesiumTerrainServerFunction:
-    Description: "Lambda Function ARN for Cesium Terrain Server"
-    Value: !GetAtt CesiumTerrainServer.Arn
-  CesiumTerrainServerIamRole:
-    Description: "Implicit IAM Role created for Cesium Terrain Server function"
-    Value: !GetAtt CesiumTerrainServerRole.Arn
+  CesiumTerrainServerApi:
+    Description: URL for application
+    Value: !Sub 'https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com'
+    Export:
+      Name: CesiumTerrainServerApi

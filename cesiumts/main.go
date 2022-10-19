@@ -1,16 +1,15 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"path"
-	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	ctsHandlers "github.com/geo-data/cesium-terrain-server/handlers"
+	"github.com/geo-data/cesium-terrain-server/stores/fs"
+	"github.com/gorilla/mux"
 )
 
 const SampleFileName = "sample.txt"
@@ -21,32 +20,30 @@ func check(e error) {
 	}
 }
 
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
 func main() {
-	sampleFile := path.Join(os.Getenv("FILES_DIR"), SampleFileName)
+	tilesetRoot := getEnv("TILESET_ROOT", ".")
+	baseTerrainUrl := getEnv("BASE_TERRAIN_URL", "/tilesets")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat(sampleFile); errors.Is(err, os.ErrNotExist) {
-			currentTime := time.Now()
-			data := []byte(fmt.Sprintf("Hello efs! written at %s", currentTime))
-			err := os.WriteFile(sampleFile, data, 0644)
-			check(err)
-		}
+	// Get the tileset store
+	store := fs.New(tilesetRoot)
 
-		dat, err := os.ReadFile(sampleFile)
-		check(err)
-		fmt.Print()
-
-		io.WriteString(w, string(dat))
+	r := mux.NewRouter()
+	r.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "PONG")
 	})
+	r.HandleFunc(baseTerrainUrl+"/{tileset}/layer.json", ctsHandlers.LayerHandler(store))
+	r.HandleFunc(baseTerrainUrl+"/{tileset}/{z:[0-9]+}/{x:[0-9]+}/{y:[0-9]+}.terrain", ctsHandlers.TerrainHandler(store))
 
-	http.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat(sampleFile); errors.Is(err, os.ErrNotExist) {
-			err := os.Remove(sampleFile)
-			check(err)
-			io.WriteString(w, "true")
-		}
-		io.WriteString(w, "false")
-	})
+	handler := ctsHandlers.AddCorsHeader(r)
+
+	http.Handle("/", handler)
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)
 }

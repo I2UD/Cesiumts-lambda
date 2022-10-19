@@ -7,6 +7,11 @@ Globals:
   Function:
     Timeout: 5
 
+Parameters:
+  BaseTerrainUrl:
+    Type: String
+    Default: /tilesets
+    Description: Base URL prefix under which all tilesets are served
 Resources:
   EfsLambdaVpc:
     Type: AWS::EC2::VPC
@@ -83,7 +88,8 @@ Resources:
           LocalMountPath: /mnt/lambda
       Environment:
         Variables:
-          FILES_DIR: /mnt/lambda
+          TILESET_ROOT: /mnt/lambda
+          BASE_TERRAIN_URL: !Ref BaseTerrainUrl
       Events:
         GetResource:
           Type: Api

@@ -8,17 +8,15 @@ Uses [AWS Lambda Go API Proxy](https://github.com/awslabs/aws-lambda-go-api-prox
 
 You will need to have installed AWS SAM CLI.
 
-First build the image:
+First build the image, then validate the template file and deploy:
 
 ```
 sam build
-```
-
-Then, deploy:
-
-```
+sam validate
 sam deploy --guided
 ```
+
+Use `--profile` if you need to specify an AWS auth profile.
 
 Now follow the instructions.  In the end, SAM will have created all the
 resources it needs.

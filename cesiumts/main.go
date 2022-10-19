@@ -6,13 +6,14 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 )
 
-const SampleFile = "/mnt/lambda/file"
+const SampleFileName = "sample.txt"
 
 func check(e error) {
 	if e != nil {
@@ -21,15 +22,17 @@ func check(e error) {
 }
 
 func main() {
+	sampleFile := path.Join(os.Getenv("FILES_DIR"), SampleFileName)
+
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat(SampleFile); errors.Is(err, os.ErrNotExist) {
+		if _, err := os.Stat(sampleFile); errors.Is(err, os.ErrNotExist) {
 			currentTime := time.Now()
 			data := []byte(fmt.Sprintf("Hello efs! written at %s", currentTime))
-			err := os.WriteFile(SampleFile, data, 0644)
+			err := os.WriteFile(sampleFile, data, 0644)
 			check(err)
 		}
 
-		dat, err := os.ReadFile(SampleFile)
+		dat, err := os.ReadFile(sampleFile)
 		check(err)
 		fmt.Print()
 
@@ -37,8 +40,8 @@ func main() {
 	})
 
 	http.HandleFunc("/reset", func(w http.ResponseWriter, r *http.Request) {
-		if _, err := os.Stat(SampleFile); errors.Is(err, os.ErrNotExist) {
-			err := os.Remove(SampleFile)
+		if _, err := os.Stat(sampleFile); errors.Is(err, os.ErrNotExist) {
+			err := os.Remove(sampleFile)
 			check(err)
 			io.WriteString(w, "true")
 		}

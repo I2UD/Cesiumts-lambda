@@ -12,14 +12,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const SampleFileName = "sample.txt"
-
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func getEnv(key, fallback string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
@@ -31,7 +23,6 @@ func main() {
 	tilesetRoot := getEnv("TILESET_ROOT", ".")
 	baseTerrainUrl := getEnv("BASE_TERRAIN_URL", "/tilesets")
 
-	// Get the tileset store
 	store := fs.New(tilesetRoot)
 
 	r := mux.NewRouter()
@@ -42,7 +33,6 @@ func main() {
 	r.HandleFunc(baseTerrainUrl+"/{tileset}/{z:[0-9]+}/{x:[0-9]+}/{y:[0-9]+}.terrain", ctsHandlers.TerrainHandler(store))
 
 	handler := ctsHandlers.AddCorsHeader(r)
-
 	http.Handle("/", handler)
 
 	lambda.Start(httpadapter.New(http.DefaultServeMux).ProxyWithContext)

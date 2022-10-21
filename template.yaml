@@ -12,6 +12,7 @@ Parameters:
     Type: String
     Default: /tilesets
     Description: Base URL prefix under which all tilesets are served
+
 Resources:
   EfsLambdaVpc:
     Type: AWS::EC2::VPC
@@ -61,7 +62,7 @@ Resources:
         Gid: "1000"
         Uid: "1000"
       RootDirectory:
-        Path: "/lambda"
+        Path: "/"
         CreationInfo:
           OwnerGid: "1000"
           OwnerUid: "1000"

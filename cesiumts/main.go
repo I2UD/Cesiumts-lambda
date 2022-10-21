@@ -4,6 +4,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
@@ -22,6 +23,12 @@ func getEnv(key, fallback string) string {
 func main() {
 	tilesetRoot := getEnv("TILESET_ROOT", ".")
 	baseTerrainUrl := getEnv("BASE_TERRAIN_URL", "/tilesets")
+
+	// Workaround to tilesetRoot not being current working directory: Change CWD to tilesetRoot.
+	err := os.Chdir(path.Join(tilesetRoot))
+	if err != nil {
+		panic(err)
+	}
 
 	store := fs.New(tilesetRoot)
 

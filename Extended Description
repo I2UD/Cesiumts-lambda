@@ -1,0 +1,21 @@
+## Extended Description
+
+### **Key Features**
+- **Serverless & Scalable**: Automatically adjusts to varying workload demands, ensuring seamless performance while reducing operational costs.
+- **Optimized Terrain Data Access**: Utilizes Amazon EFS for efficient storage and retrieval of terrain tiles, minimizing latency and maximizing availability.
+- **Streamlined Deployment**: A single `sam deploy --guided` command sets up the entire infrastructure, making deployment accessible even for those new to AWS.
+- **Seamless Integration with CesiumJS**: Delivers terrain tiles in a format that integrates effortlessly with CesiumJS, facilitating high-quality 3D terrain rendering.
+- **Flexible API Routing**: Allows customization of URL prefixes for terrain tiles, adapting to various application requirements.
+
+### **Architecture Overview**
+This system is built upon AWS's serverless infrastructure, leveraging the following key components:
+- **AWS Lambda**: Provides lightweight, on-demand execution without requiring server management.
+- **Amazon API Gateway**: Efficiently manages incoming HTTP requests and routes them to Lambda functions.
+- **Amazon EFS**: Ensures persistent storage for terrain data, offering a balance of scalability and performance.
+- **AWS CloudFormation**: Automates infrastructure deployment and configuration, promoting consistency and repeatability.
+
+### **Why Choose This Solution?**
+- **Cost-Efficient**: Operates on a pay-as-you-go model, significantly lowering expenses compared to traditional terrain servers.
+- **Maintenance-Free**: AWS automatically manages infrastructure, handling scaling, uptime, and security without user intervention.
+- **Optimized for Terrain Data Distribution**: Designed specifically to serve CesiumJS-compatible elevation datasets with minimal overhead and maximum performance.
+- **Reliability and Performance**: Ensures high availability and responsiveness, even for large-scale terrain visualization applications.
